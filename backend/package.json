@@ -5,9 +5,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "tsc -b",
+    "build": "tsc",
     "start": "node dist/Server.js",
-    "dev": "tsc -b && node ./dist/Server.js"
+    "dev": "tsc && node ./dist/Server.js"
   },
   "keywords": [],
   "author": "",
