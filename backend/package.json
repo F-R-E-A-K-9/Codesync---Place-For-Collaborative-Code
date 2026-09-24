@@ -6,7 +6,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "start": "ls -la && echo '---DIST FOLDER---' && ls -la dist && node dist/Server.js",
+    "start": "node dist/Server.js",
     "dev": "tsc && node ./dist/Server.js"
   },
   "keywords": [],
