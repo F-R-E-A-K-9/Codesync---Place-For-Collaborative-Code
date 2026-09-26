@@ -22,7 +22,10 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 const server = createServer(app);
 
 const corsoptions = {
-  origin: "http://localhost:5173", // abhi local frontend ke liye; deploy karte waqt isko production URL se badal denge
+  origin: [
+    "http://localhost:5173",
+    "https://codesync-place-for-collaborative-co.vercel.app",
+  ], // abhi local frontend ke liye; deploy karte waqt isko production URL se badal denge
 };
 
 app.use(express.json());
