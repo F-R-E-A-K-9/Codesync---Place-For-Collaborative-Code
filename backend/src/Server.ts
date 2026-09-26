@@ -32,7 +32,10 @@ app.use(express.json());
 app.use(cors(corsoptions));
 
 // @ts-ignore
-mongoose.connect(process.env.MONGODB_URI);
+mongoose
+  .connect(process.env.MONGODB_URI, { family: 4 })
+  .then(() => console.log("MongoDB connected successfully"))
+  .catch((err) => console.log("MongoDB connection error:", err));
 
 const zodschema = z.object({
   username: z
