@@ -4,6 +4,14 @@ import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 
+const languageOptions: Record<string, { monaco: string; jdoodle: string; versionIndex: string; extension: string }> = {
+  javascript: { monaco: "javascript", jdoodle: "nodejs", versionIndex: "4", extension: "js" },
+  python: { monaco: "python", jdoodle: "python3", versionIndex: "4", extension: "py" },
+  c: { monaco: "c", jdoodle: "c", versionIndex: "5", extension: "c" },
+  cpp: { monaco: "cpp", jdoodle: "cpp17", versionIndex: "1", extension: "cpp" },
+  java: { monaco: "java", jdoodle: "java", versionIndex: "4", extension: "java" },
+};
+
 const Codeeditor = () => {
   const navigate = useNavigate();
   const { roomId } = useParams();
@@ -17,6 +25,7 @@ const Codeeditor = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [running, setRunning] = useState(false);
+  const [language, setLanguage] = useState<string>("javascript");
 
   const editorRef = useRef<any>(null);
   const isReceivingRef = useRef(false);
@@ -177,13 +186,14 @@ const Codeeditor = () => {
       const liveCode = editorRef.current
         ? editorRef.current.getValue()
         : content;
+      const selected = languageOptions[language];
 
       const response = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}api/v1/run-code`,
         {
           content: liveCode,
-          language: "nodejs",
-          versionindex: "4",
+          language: selected.jdoodle,
+          versionindex: selected.versionIndex,
         },
         {
           headers: { authorization: token },
@@ -273,16 +283,31 @@ const Codeeditor = () => {
         {/* Editor panel */}
         <div className="flex flex-col bg-paper-raised border-2 border-blueprint/20 rounded-lg overflow-hidden shadow-[6px_6px_0px_0px_rgba(45,95,138,0.08)] flex-1 md:flex-[60] h-[45vh] md:h-full">
           <div className="flex items-center justify-between px-4 py-2.5 border-b border-blueprint/15">
-            <span className="font-mono text-xs text-ink-soft">session.js</span>
-            <span className="font-mono text-[10px] text-sage bg-sage/10 border border-sage/25 rounded px-2 py-0.5">
-              syncing
+            <span className="font-mono text-xs text-ink-soft">
+              session.{languageOptions[language].extension}
             </span>
+            <div className="flex items-center gap-2">
+              <select
+                value={language}
+                onChange={(e) => setLanguage(e.target.value)}
+                className="font-mono text-xs bg-paper border border-blueprint/25 rounded px-2 py-1 text-ink-soft focus:outline-none focus:border-blueprint cursor-pointer"
+              >
+                <option value="javascript">JavaScript</option>
+                <option value="python">Python</option>
+                <option value="c">C</option>
+                <option value="cpp">C++</option>
+                <option value="java">Java</option>
+              </select>
+              <span className="font-mono text-[10px] text-sage bg-sage/10 border border-sage/25 rounded px-2 py-0.5">
+                syncing
+              </span>
+            </div>
           </div>
           <div className="flex-1 min-h-0">
             <Editor
               height="100%"
               theme="blueprint-light"
-              defaultLanguage="javascript"
+              language={languageOptions[language].monaco}
               value={content}
               beforeMount={handleEditorWillMount}
               onMount={handleEditorMount}

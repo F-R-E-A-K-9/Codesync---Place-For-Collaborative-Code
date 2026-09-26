@@ -56,6 +56,17 @@ const Landingpage = () => {
       toast.error(err.response?.data?.message || "Something went wrong");
     }
   }
+    async function handleGuest() {
+    try {
+      const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}api/v1/guest`)
+      localStorage.setItem('authorization', response.data.token)
+      localStorage.setItem('username', response.data.username)
+      toast.success(response.data.message)
+      navigate('/Dashboard')
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Something went wrong")
+    }
+  }
   return (
     <div className="min-h-screen bg-paper font-sans text-ink relative overflow-x-hidden">
       {/* Subtle blueprint grid — sirf background texture, functional feel */}
@@ -195,7 +206,22 @@ const Landingpage = () => {
                       Sign in
                     </button>
                   </form>
-                )}
+                  )
+                  
+                }
+
+                                <div className="flex items-center gap-3 my-4">
+                  <div className="flex-1 h-px bg-blueprint/15" />
+                  <span className="text-xs text-ink-soft">or</span>
+                  <div className="flex-1 h-px bg-blueprint/15" />
+                </div>
+
+                <button
+                  onClick={handleGuest}
+                  className="w-full py-3 border-2 border-dashed border-blueprint/30 text-ink-soft hover:border-blueprint hover:text-blueprint rounded-md font-medium transition-colors text-sm"
+                >
+                  Continue as guest
+                </button>
               </>
             )}
           </div>

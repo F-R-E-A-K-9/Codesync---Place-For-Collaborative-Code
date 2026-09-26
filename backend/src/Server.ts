@@ -32,8 +32,7 @@ app.use(express.json());
 app.use(cors(corsoptions));
 
 // @ts-ignore
-mongoose
-  .connect(process.env.MONGODB_URI, { family: 4 })
+mongoose.connect(process.env.MONGODB_URI, { family: 4 })
   .then(() => console.log("MongoDB connected successfully"))
   .catch((err) => console.log("MongoDB connection error:", err));
 
@@ -139,6 +138,53 @@ app.post("/api/v1/signin", async (req, res) => {
     });
   }
 });
+
+app.post('/api/v1/guest', async (req, res) => {
+    try {
+        let attempt = 0
+        let newUser
+
+                while (attempt < 3 && !newUser) {
+            try {
+                const guestId = nanoid(6)
+                const guestUsername = `Guest_${guestId}`
+                const guestEmail = `${guestId}@guest.codesync`
+                const randomPassword = await bcrypt.hash(nanoid(12), 12)
+
+                newUser = await Usermodel.create({
+                    name: guestUsername,
+                    email: guestEmail,
+                    password: randomPassword
+                })
+            }
+            catch (e: any) {
+                console.log('Guest creation attempt failed:', e.code, e.message)
+                if (e.code !== 11000) throw e
+                attempt++
+            }
+        }
+
+        if (!newUser) {
+            return res.status(500).json({ message: 'Could not create guest session, please try again' })
+        }
+
+        // @ts-ignore
+        const secretkey: string = process.env.JWT_SECRET_KEY
+        const token = jwt.sign({ email: newUser.email }, secretkey, { expiresIn: '24h' })
+
+        res.status(200).json({
+            message: 'Continuing as guest',
+            token: token,
+            username: newUser.name
+        })
+    }
+    catch (e) {
+        console.log('Error encountered as', e)
+        res.status(500).json({ message: 'Internal Server Error' })
+    }
+})
+
+
 app.post("/api/v1/create-room", Auth, async (req, res) => {
   try {
     const { roomname } = req.body;
@@ -243,12 +289,17 @@ app.post("/api/v1/save-code", Auth, async (req, res) => {
     message: "Content Updated in DB",
   });
 });
-app.post("/api/v1/run-code", Auth, async (req, res) => {
-  const { content, language, versionindex } = req.body;
+app.post('/api/v1/run-code', Auth, async (req, res) => {
+    const { content, language, versionindex } = req.body
 
-  if (!content || content.trim() === "") {
-    return res.status(400).json({ message: "Write some code first !" });
-  }
+    if (!content || content.trim() === "") {
+        return res.status(400).json({ message: "Write some code first !" });
+    }
+
+    const allowedLanguages = ['nodejs', 'c', 'cpp17', 'python3', 'java']
+    if (!allowedLanguages.includes(language)) {
+        return res.status(400).json({ message: "Unsupported language" });
+    }
 
   try {
     const response = await axios.post(
